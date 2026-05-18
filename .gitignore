@@ -1,0 +1,20 @@
+# Virtual environment (VM)
+.venv/
+
+# IDE settings
+.vscode/
+
+# Python caching
+__pycache__/
+*.pyc
+
+# Local data & ML training outputs (Very large files)
+dataset/
+runs/
+snapshots/
+yolotrain/
+
+# Machine learning model weights (Do not track heavy binary files)
+*.pt
+*.caffemodel
+*.prototxt

@@ -1,0 +1,10 @@
+train: images/train  # Relative path to training images
+val: images/val      # Relative path to validation images
+nc: 5
+# Class names mapping list (Modify to match your explicit hardware items)
+names:
+  0: bottle
+  1: can
+  2: pen
+  3: phone
+  4: stapler

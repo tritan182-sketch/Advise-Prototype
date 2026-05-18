@@ -1,0 +1,11 @@
+[2026-05-15 09:11:27] AIRCRAFT FLIGHTLINE RECORD: tail
+[2026-05-15 09:11:42] AIRCRAFT FLIGHTLINE RECORD: tail 328
+[2026-05-15 09:12:08] AIRCRAFT FLIGHTLINE RECORD: tail number 3281
+[2026-05-15 10:21:34] AIRCRAFT FLIGHTLINE RECORD: 3281 has a leaked behind
+[2026-05-15 10:27:08] AIRCRAFT FLIGHTLINE RECORD: aircraft 3281 has a leaked behind
+[2026-05-15 10:27:26] AIRCRAFT FLIGHTLINE RECORD: aircraft 3281 has a leak behind number
+[2026-05-15 10:31:06] AIRCRAFT FLIGHTLINE RECORD: aircraft 3281 has leaked behind number two engine
+[2026-05-15 10:32:04] AIRCRAFT FLIGHTLINE RECORD: aircraft 3281 is looking good
+[2026-05-15 10:36:29] AIRCRAFT FLIGHTLINE RECORD: 3281 has hydraulic leak behind the number 3 engine near the fan blades
+[2026-05-15 10:37:34] AIRCRAFT FLIGHTLINE RECORD: aircraft 3281 has a big dent in the nose cone
+[2026-05-15 16:43:42] AIRCRAFT FLIGHTLINE RECORD: aircraft 3281 has a leak behind number 2 engine
