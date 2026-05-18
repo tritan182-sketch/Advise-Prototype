@@ -434,11 +434,18 @@ async def system_lifecycle_manager(display):
                 display.show_text("ERROR: Must start with 'advise'", line=1)
                 await asyncio.sleep(2)
 
+             # ==========================================================
+            # MASTER RESET GATE: Forces a snap back to READY after ANY command finishes
+            # ==========================================================
             if display.state != "STANDBY":
-                if display.state not in ["PROCESSING", "CAPTURING"]:
-                    display.hud_lines.clear()
-                    display.show_text("READY", line=1)
-                    display.state = "AWAKE"
+                # Clear all visual artifacts and scrolling texts
+                display.active_ar_boxes = []
+                display.hud_lines.clear()
+                
+                # Re-project the master operational state
+                display.show_text("READY", line=1)
+                display.state = "AWAKE"
+            # ==========================================================
 
         if display.trigger_snap_flag:
             display.trigger_snap_flag = False

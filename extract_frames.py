@@ -48,7 +48,7 @@ def extract_frames(video_path, output_folder, frame_interval_ms=500):
 # === TAILORED PRODUCTION CONFIGURATION ===
 if __name__ == "__main__":
     # 1. Name of the video file you just recorded
-    video_file = "hardware_video.mp4" 
+    video_file = "dataset/NAS517-5_2.avi" 
     
     # 2. Points directly to the training folder your train_model.py reads from
     destination = "yolotrain/images/train"
