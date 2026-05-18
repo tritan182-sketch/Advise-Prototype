@@ -1,7 +1,17 @@
 # voice_processor.py
 import speech_recognition as sr
 import asyncio
+import subprocess
 
+# === OVERRIDE: WIPE OUT VOICE PROCESSOR VERBAL OUTPUTS ===
+def speak_offline(text):
+    """
+    Overridden to be completely silent.
+    Bypasses the corporate VM audio emulation overhead entirely.
+    """
+    # Simply prints to the terminal layout so you can still track it visually
+    print(f"[VOICE SYNTH TRACE]: {text}")
+    
 class LocalVoiceTrigger:
     def __init__(self):
         self.recognizer = sr.Recognizer()
@@ -24,21 +34,23 @@ class LocalVoiceTrigger:
 
                 if not hasattr(self, '_calibrated') or not self._calibrated:
                     print("[Voice Engine] Glasses AWAKE. Calibrating for background noise...")
-                    self.recognizer.adjust_for_ambient_noise(source, duration=1.5)
+                    speak_offline("Calibrating audio.") # <-- Voice Response
+                    await asyncio.to_thread(self.recognizer.adjust_for_ambient_noise, source, duration=1.5)
                     print("[Voice Engine] Calibration complete. Listening for commands...")
+                    speak_offline("System listening.") # <-- Voice Response
                     self._calibrated = True
 
                 try:
                     # ADVANCED TIMING OVERRIDES: Stop the engine from closing mid-thought
-                    self.recognizer.pause_threshold = 1.8         # Wait a full 1.8 seconds of complete silence
-                    self.recognizer.non_speaking_duration = 1.0   # Keep the audio buffer open longer after words
-                    self.recognizer.phrase_threshold = 0.5        # Minimum audio window to establish clear speech
+                    self.recognizer.pause_threshold = 1.8         
+                    self.recognizer.non_speaking_duration = 1.0   
+                    self.recognizer.phrase_threshold = 0.5        
                     
                     audio = await asyncio.to_thread(
                         self.recognizer.listen, 
                         source, 
-                        timeout=4.0,            # Wait up to 4 seconds to start talking
-                        phrase_time_limit=None  # No hard length constraints allowed
+                        timeout=4.0,            
+                        phrase_time_limit=None  
                     )
                 except sr.WaitTimeoutError:
                     if callback_target.state == "STANDBY":
@@ -55,10 +67,10 @@ class LocalVoiceTrigger:
                         continue
 
                     # 1. HARDWARE DATA INVENTORY FAST-TRACK
-                    # Captures fuzzy variants like "advice hardware", "ice hardware", or standalone "hardware"
                     has_wake = any(w in words for w in wake_words)
                     if ("hardware" in words) or (has_wake and "hardware" in words):
                         print(" -> [Trigger Match] 'advise hardware'")
+                        speak_offline("Scanning hardware inventory.") # <-- Voice Response
                         callback_target.trigger_text_command = "advise hardware"
                         continue
 
@@ -66,21 +78,27 @@ class LocalVoiceTrigger:
                     has_scan = any(s in words for s in scan_commands)
                     if (has_wake and has_scan) or (spoken_phrase in ["scan", "look"]):
                         print(" -> [Trigger Match] 'advise scan'")
+                        speak_offline("Initiating computer vision scan.") # <-- Voice Response
                         callback_target.trigger_text_command = "advise scan"
                         continue
 
                     # 3. FLUID LOGGING FAST-TRACK
                     if words[0] in wake_words and len(words) > 1:
-                        # Normalize the spoken wake-phrase down to "advise"
                         words[0] = "advise"
-                        
-                        # Catch the word "right" or "ride" and convert to "write"
                         if words[1] in ["right", "ride", "white"]:
                             words[1] = "write"
                             
                         processed_command = " ".join(words)
                         print(f" -> [Vocab Cleaned]: '{processed_command}'")
+                        speak_offline(f"Executing {processed_command}") # <-- Voice Response
                         callback_target.trigger_text_command = processed_command
+
+                    # 4. EMERGENCY SYSTEM SHUTDOWN
+                    if "exit" in words or "shutdown" in words or (has_wake and "exit" in words):
+                        print(" -> [Trigger Match] 'advise exit'")
+                        speak_offline("Shutting down the prototype application.")
+                        callback_target.trigger_text_command = "advise exit"
+                        continue
 
                 except sr.UnknownValueError:
                     pass

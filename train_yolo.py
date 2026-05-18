@@ -2,6 +2,10 @@
 import os
 import yaml
 from ultralytics import YOLO
+# Detect if a GPU is available to speed up training, otherwise fall back to CPU
+import torch
+training_device = 0 if torch.cuda.is_available() else "cpu"
+print(f"[Hardware Engine] Training will run on: {training_device.upper() if isinstance(training_device, str) else 'NVIDIA GPU'}")
 
 def launch_dynamic_training():
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -11,7 +15,7 @@ def launch_dynamic_training():
     
     if not os.path.exists(classes_txt_path):
         print(f"\n[Configuration Error] 'classes.txt' not found at: {classes_txt_path}")
-        print("Please open box_tool.py, annotate your images, and save them first!")
+        print("Please annotate your images on MakeSense.ai, export the YOLO zip, and drop the files here!")
         return
 
     # Read class definitions
@@ -60,9 +64,10 @@ def launch_dynamic_training():
         model = YOLO("yolov8n.pt")
         model.train(
             data=runtime_yaml_path,
-            epochs=100,       # Bumped up to 100 to ensure good convergence on small datasets
-            imgsz=960,
-            device="cpu"      # Change to 0 if an Nvidia GPU is present
+            epochs=100,       
+            imgsz=640,         # Lowered to 640 for faster prototyping cycles
+            device=training_device, # Automatically uses GPU if your home or work PC has one
+            workers=2          # Keeps CPU threading stable inside a Virtual Machine
         )
     finally:
         if os.path.exists(runtime_yaml_path):
