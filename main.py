@@ -20,6 +20,8 @@ USE_SIMULATOR = True
 SHOW_VIEWFINDER = True  
 STANDBY_TIMEOUT = 45.0 
 ENABLE_VOICE_RESPONSES = False  # <-- Set to True at home, False at work!
+# === NEW HUD CONFIGURATION TOGGLE ===
+USE_SCIFI_HUD = True  # Set to True for the target overlays, False for normal boxes
 
 SNAPSHOTS_DIR = "snapshots"
 NOTES_DIR = "notes"
@@ -146,16 +148,17 @@ def local_yolo_aircraft_scan(memory_frame, display_instance, mode="standard") ->
         highest_conf = -1.0
         best_label = "Unknown"
 
+        # Clean tracking loop (keeps background processing extremely snappy)
         for box in results.boxes:
-            # Safely parse Ultralytics tensor indices
-            x1, y1, x2, y2 = map(int, box.xyxy[0])
-            box_conf = float(box.conf[0])
-            class_id = int(box.cls[0])
+            coords = box.xyxy[0].tolist()
+            x1, y1, x2, y2 = map(int, coords)
+            box_conf = float(box.conf)
+            class_id = int(box.cls)
             
-            # Grabs the text name from the global model dictionary
             component_label_name = GLOBAL_YOLO_MODEL.names[class_id]
             confidence_pct = int(box_conf * 100)
             
+            # This appends the raw values to your display instance overlay layout matrix
             display_instance.active_ar_boxes.append(
                 (x1, y1, x2, y2, str(component_label_name).upper(), confidence_pct)
             )
@@ -477,11 +480,14 @@ async def system_lifecycle_manager(display):
 
 async def main():
     display = SmartGlassesDisplay(simulate=USE_SIMULATOR, show_viewfinder=SHOW_VIEWFINDER)
+    display.use_scifi = USE_SCIFI_HUD
     await display.connect()
     
+    # Initialize the background audio capture engine
     voice_engine = LocalVoiceTrigger()
     
     try:
+        # Run both tasks concurrently on the asynchronous event loop
         await asyncio.gather(
             system_lifecycle_manager(display),
             voice_engine.start_listening(display)

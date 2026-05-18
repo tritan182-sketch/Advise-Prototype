@@ -9,6 +9,8 @@ class SmartGlassesDisplay:
     def __init__(self, simulate=True, show_viewfinder=False):
         self.simulate = simulate
         self.show_viewfinder = show_viewfinder
+        # FIXED: Give it a safe local default value so it doesn't crash on boot!
+        self.use_scifi = True 
         self.window_name = "Halo Glasses HUD Simulator"
         
         # FIXED: Explicitly restore the missing viewfinder window identifier string
@@ -107,22 +109,58 @@ class SmartGlassesDisplay:
                 else:
                     self.canvas = np.zeros((self.height, self.width, 3), dtype=np.uint8)
 
-            # === DYNAMIC AUGMENTED REALITY BOX DRAWING LAYER ===
+              # === DYNAMIC AUGMENTED REALITY BOX DRAWING LAYER ===
             # CONDITIONAL RENDER GATE: Only show boxes if the hardware catalog dashboard is completely offline
             if not is_hardware_menu_active:
                 for box_data in self.active_ar_boxes:
                     x1, y1, x2, y2, label, conf = box_data
                     
-                    # Draw the green tracking box normally for standard scans
-                    cv2.rectangle(self.canvas, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                    
-                    # Standard floating text tag
-                    tag_text = f"LOCK: {label} ({conf}%)"
-                    cv2.rectangle(self.canvas, (x1, y1 - 25), (x1 + 180, y1), (0, 255, 0), -1)
-                    cv2.putText(self.canvas, tag_text, (x1 + 5, y1 - 7), 
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1, cv2.LINE_AA)
+                    if self.use_scifi:
+                        # ==========================================================
+                        # OPTION A: HIGH-TECH SCI-FI TARGET OVERLAYS
+                        # ==========================================================
+                        color_glow = (0, 255, 0)
+                        thickness_glow = 2
+                        bracket_len = min(25, int((x2 - x1) * 0.25))
+                        
+                        # Corner Brackets
+                        cv2.line(self.canvas, (x1, y1), (x1 + bracket_len, y1), color_glow, thickness_glow)
+                        cv2.line(self.canvas, (x1, y1), (x1, y1 + bracket_len), color_glow, thickness_glow)
+                        cv2.line(self.canvas, (x2, y1), (x2 - bracket_len, y1), color_glow, thickness_glow)
+                        cv2.line(self.canvas, (x2, y1), (x2, y1 + bracket_len), color_glow, thickness_glow)
+                        cv2.line(self.canvas, (x1, y2), (x1 + bracket_len, y2), color_glow, thickness_glow)
+                        cv2.line(self.canvas, (x1, y2), (x1, y2 - bracket_len), color_glow, thickness_glow)
+                        cv2.line(self.canvas, (x2, y2), (x2 - bracket_len, y2), color_glow, thickness_glow)
+                        cv2.line(self.canvas, (x2, y2), (x2, y2 - bracket_len), color_glow, thickness_glow)
+                        
+                        # Scanning Horizontal Sweep Line
+                        scan_period = 1.5
+                        sweep_pct = (current_time % scan_period) / scan_period
+                        if sweep_pct > 0.5: sweep_pct = 1.0 - sweep_pct
+                        sweep_pct *= 2.0
+                        current_sweep_y = int(y1 + (y2 - y1) * sweep_pct)
+                        cv2.line(self.canvas, (x1, current_sweep_y), (x2, current_sweep_y), (0, 230, 0), 1)
+                        
+                        # Flashing Center Crosshairs
+                        if int(current_time * 5) % 2 == 0:
+                            cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
+                            cv2.line(self.canvas, (cx - 8, cy), (cx + 8, cy), color_glow, 1)
+                            cv2.line(self.canvas, (cx, cy - 8), (cx, cy + 8), color_glow, 1)
+
+                        # Floating Clean Text Tag
+                        tag_text = f"TRACK LOCK: {label} ({conf}%)"
+                        cv2.putText(self.canvas, tag_text, (x1, y1 - 8), 
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_glow, 1, cv2.LINE_AA)
+                    else:
+                        # ==========================================================
+                        # OPTION B: STANDARD LEAN BOUNDING BOXES (Your original code fallback)
+                        # ==========================================================
+                        cv2.rectangle(self.canvas, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                        tag_text = f"LOCK: {label} ({conf}%)"
+                        cv2.rectangle(self.canvas, (x1, y1 - 25), (x1 + 180, y1), (0, 255, 0), -1)
+                        cv2.putText(self.canvas, tag_text, (x1 + 5, y1 - 7), 
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1, cv2.LINE_AA)
             else:
-                # Keep the micro-display pod completely clean during 'advise hardware' lookups
                 pass
 
             # === GRAPHICAL HUD DASHBOARD LAYER OVERLAY ===
